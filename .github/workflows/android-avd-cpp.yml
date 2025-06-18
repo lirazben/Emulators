@@ -13,6 +13,7 @@ jobs:
 
     env:
       ANDROID_SDK_ROOT: ${{ github.workspace }}/android-sdk
+      JAVA_HOME: /usr/lib/jvm/temurin-17-jdk
       ANDROID_NDK_VERSION: "29.0.13599879"
       AVD_NAME: test
       SYS_IMG: "system-images;android-30;google_apis;x86_64"
