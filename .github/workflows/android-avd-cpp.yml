@@ -14,6 +14,7 @@ jobs:
       HOME: /home/runner
       ANDROID_AVD_HOME: /home/runner/.android/avd
       ANDROID_SDK_ROOT: ${{ github.workspace }}/android-sdk
+      ANDROID_HOME: ${{ github.workspace }}/android-sdk
       ANDROID_NDK_VERSION: "25.1.8937393"
       AVD_NAME: test
       SYS_IMG: "system-images;android-30;default;x86_64"
@@ -73,6 +74,8 @@ jobs:
     - name: Start emulator
       run: |
         echo "🚀 Starting emulator..."
+        export ANDROID_SDK_ROOT="${ANDROID_SDK_ROOT}"
+        export ANDROID_HOME="${ANDROID_SDK_ROOT}"
         nohup $ANDROID_SDK_ROOT/emulator/emulator -avd $AVD_NAME -no-window -no-audio -no-snapshot -no-boot-anim \
           -gpu swiftshader_indirect \
           -port 5554 -verbose > /tmp/emulator.log 2>&1 & 
@@ -92,7 +95,7 @@ jobs:
 
         echo "⏳ Waiting for emulator to boot..."
         boot_completed=""
-        timeout=600
+        timeout=480
         count=0
         until [[ "$boot_completed" == "1" || $count -ge $timeout ]]; do
           boot_completed=$($ANDROID_SDK_ROOT/platform-tools/adb shell getprop sys.boot_completed | tr -d '\r')
