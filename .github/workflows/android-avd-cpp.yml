@@ -98,7 +98,6 @@ jobs:
         echo "🔌 Connecting ADB manually..."
         $ANDROID_SDK_ROOT/platform-tools/adb kill-server || true
         $ANDROID_SDK_ROOT/platform-tools/adb start-server
-        $ANDROID_SDK_ROOT/platform-tools/adb connect localhost:5555
         $ANDROID_SDK_ROOT/platform-tools/adb wait-for-device
         
         echo "✅ Emulator booted"
@@ -109,7 +108,7 @@ jobs:
         timeout=480
         count=0
         until [[ "$boot_completed" == "1" || $count -ge $timeout ]]; do
-          boot_completed=$($ANDROID_SDK_ROOT/platform-tools/adb shell getprop sys.boot_completed | tr -d '\r')
+          boot_completed=$($ANDROID_SDK_ROOT/platform-tools/adb shell -s emulator-5554 getprop sys.boot_completed | tr -d '\r')
           sleep 1
           count=$((count + 1))
         done
@@ -136,8 +135,8 @@ jobs:
     - name: Push and run binary
       run: |
         export ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/$ANDROID_NDK_VERSION
-        $ANDROID_SDK_ROOT/platform-tools/adb shell mkdir -p /data/local/tmp/testbin
+        $ANDROID_SDK_ROOT/platform-tools/adb shell -s emulator-5554 mkdir -p /data/local/tmp/testbin
         $ANDROID_SDK_ROOT/platform-tools/adb push build/local/x86/your-test-binary /data/local/tmp/testbin/
-        $ANDROID_SDK_ROOT/platform-tools/adb shell chmod +x /data/local/tmp/testbin/your-test-binary
+        $ANDROID_SDK_ROOT/platform-tools/adb shell -s emulator-5554 chmod +x /data/local/tmp/testbin/your-test-binary
         $ANDROID_SDK_ROOT/platform-tools/adb push $ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/i686-linux-android/libc++_shared.so /data/local/tmp/
-        $ANDROID_SDK_ROOT/platform-tools/adb shell LD_LIBRARY_PATH=/data/local/tmp /data/local/tmp/testbin/your-test-binary
+        $ANDROID_SDK_ROOT/platform-tools/adb shell -s emulator-5554 LD_LIBRARY_PATH=/data/local/tmp /data/local/tmp/testbin/your-test-binary
