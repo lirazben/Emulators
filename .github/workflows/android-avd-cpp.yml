@@ -13,7 +13,7 @@ jobs:
 
     env:
       ANDROID_SDK_ROOT: ${{ github.workspace }}/android-sdk
-      ANDROID_NDK_VERSION: "29.0.13599879"
+      ANDROID_NDK_VERSION: "25.1.8937393"
       AVD_NAME: test
       SYS_IMG: "system-images;android-30;google_apis;x86_64"
       DEVICE: "pixel_4"
@@ -53,6 +53,11 @@ jobs:
           "${SYS_IMG}" \
           "emulator"
         yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --licenses
+
+    - name: Verify system image path
+      run: |
+        echo "📂 Installed system images:"
+        find $ANDROID_SDK_ROOT/system-images -type d
 
     - name: Create AVD
       run: |
