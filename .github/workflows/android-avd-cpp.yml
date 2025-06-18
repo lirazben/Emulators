@@ -64,7 +64,7 @@ jobs:
     - name: Create AVD
       run: |
         echo "no" | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/avdmanager create avd \
-          -n $AVD_NAME -k "$SYS_IMG" --device "$DEVICE"
+          -n $AVD_NAME -k "$SYS_IMG" --device "$DEVICE" --path "$ANDROID_AVD_HOME/$AVD_NAME.avd"
 
     - name: Show AVD list
       run: |
