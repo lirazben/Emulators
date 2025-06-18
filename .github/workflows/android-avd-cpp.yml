@@ -78,6 +78,7 @@ jobs:
         export ANDROID_HOME="${ANDROID_SDK_ROOT}"
         nohup $ANDROID_SDK_ROOT/emulator/emulator -avd $AVD_NAME -no-window -no-audio -no-snapshot -no-boot-anim \
           -gpu swiftshader_indirect \
+          -accel off \
           -port 5554 -verbose > /tmp/emulator.log 2>&1 & 
         sleep 20
 
