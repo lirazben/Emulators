@@ -46,20 +46,19 @@ jobs:
 
         echo "✅ SDK and NDK installed"
 
-    - name: Accept licenses and install system image + NDK
+    - name: Install Android SDK packages and accept licenses
       run: |
-        $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --install \
-          "ndk;${ANDROID_NDK_VERSION}" \
+        yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --licenses
+        $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager \
           "platform-tools" \
+          "emulator" \
           "platforms;android-30" \
           "${SYS_IMG}" \
-          "emulator"
-        yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --licenses
+          "ndk;${ANDROID_NDK_VERSION}"
 
     - name: Create AVD
       run: |
         echo "no" | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/avdmanager create avd \
-          --sdk_root $ANDROID_SDK_ROOT \
           -n $AVD_NAME -k "$SYS_IMG" --device "$DEVICE"
 
     - name: Start emulator
