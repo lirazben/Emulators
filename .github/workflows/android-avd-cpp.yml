@@ -11,6 +11,8 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
+      HOME: /home/runner
+      ANDROID_AVD_HOME: /home/runner/.android/avd
       ANDROID_SDK_ROOT: ${{ github.workspace }}/android-sdk
       ANDROID_NDK_VERSION: "25.1.8937393"
       AVD_NAME: test
@@ -56,6 +58,9 @@ jobs:
           "${SYS_IMG}" \
           "ndk;${ANDROID_NDK_VERSION}"
 
+    - name: Prepare AVD home
+      run: mkdir -p "$ANDROID_AVD_HOME"
+          
     - name: Create AVD
       run: |
         echo "no" | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/avdmanager create avd \
