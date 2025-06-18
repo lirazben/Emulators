@@ -68,7 +68,10 @@ jobs:
     - name: Start emulator
       run: |
         echo "🚀 Starting emulator..."
-        nohup $ANDROID_SDK_ROOT/emulator/emulator -avd $AVD_NAME -no-window -no-audio -no-snapshot -no-boot-anim -port 5554 > /tmp/emulator.log 2>&1 & 
+        nohup $ANDROID_SDK_ROOT/emulator/emulator -avd $AVD_NAME -no-window -no-audio -no-snapshot -no-boot-anim \
+          -gpu swiftshader_indirect \
+          -port 5554 -verbose > /tmp/emulator.log 2>&1 & 
+        sleep 20
 
     - name: Check if emulator is running
       run: |
@@ -76,9 +79,11 @@ jobs:
 
     - name: Start emulator
       run: |
+        echo "🔌 Connecting ADB manually..."
+        $ANDROID_SDK_ROOT/platform-tools/adb kill-server || true
+        $ANDROID_SDK_ROOT/platform-tools/adb start-server
         $ANDROID_SDK_ROOT/platform-tools/adb connect localhost:5555
         $ANDROID_SDK_ROOT/platform-tools/adb devices -l
-        $ANDROID_SDK_ROOT/platform-tools/adb wait-for-device
 
         echo "⏳ Waiting for emulator to boot..."
         boot_completed=""
