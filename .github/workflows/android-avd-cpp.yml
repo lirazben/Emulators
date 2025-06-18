@@ -61,10 +61,21 @@ jobs:
         echo "no" | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/avdmanager create avd \
           -n $AVD_NAME -k "$SYS_IMG" --device "$DEVICE"
 
+    - name: Show AVD list
+      run: |
+        $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/avdmanager list avd
+
     - name: Start emulator
       run: |
         echo "🚀 Starting emulator..."
-        nohup $ANDROID_SDK_ROOT/emulator/emulator -avd $AVD_NAME -no-window -no-audio -no-snapshot -no-boot-anim > /tmp/emulator.log 2>&1 &
+        nohup $ANDROID_SDK_ROOT/emulator/emulator -avd $AVD_NAME -no-window -no-audio -no-snapshot -no-boot-anim > /tmp/emulator.log 2>&1 
+
+    - name: Check if emulator is running
+      run: |
+        ps aux | grep emulator || echo "⚠️ Emulator process not found"
+
+    - name: Start emulator
+      run: |
         $ANDROID_SDK_ROOT/platform-tools/adb wait-for-device
 
         echo "⏳ Waiting for emulator to boot..."
