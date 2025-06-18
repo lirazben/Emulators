@@ -54,11 +54,6 @@ jobs:
           "emulator"
         yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --licenses
 
-    - name: Verify system image path
-      run: |
-        echo "📂 Installed system images:"
-        find $ANDROID_SDK_ROOT/system-images -type d
-
     - name: Create AVD
       run: |
         echo "no" | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/avdmanager create avd \
