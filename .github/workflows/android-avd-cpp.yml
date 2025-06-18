@@ -68,7 +68,7 @@ jobs:
     - name: Start emulator
       run: |
         echo "🚀 Starting emulator..."
-        nohup $ANDROID_SDK_ROOT/emulator/emulator -avd $AVD_NAME -no-window -no-audio -no-snapshot -no-boot-anim > /tmp/emulator.log 2>&1 
+        nohup $ANDROID_SDK_ROOT/emulator/emulator -avd $AVD_NAME -no-window -no-audio -no-snapshot -no-boot-anim > /tmp/emulator.log 2>&1 & 
 
     - name: Check if emulator is running
       run: |
