@@ -9,22 +9,22 @@ on:
 jobs:
   run-avd:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
 
     env:
       ANDROID_SDK_ROOT: ${{ github.workspace }}/android-sdk
       ANDROID_NDK_VERSION: "25.1.8937393"
       AVD_NAME: test
-      SYS_IMG: "system-images;android-30;google_apis;x86_64"
+      SYS_IMG: "system-images;android-30;default;x86_64"
       DEVICE: "pixel_4"
 
     steps:
     - name: Checkout repo
-      uses: actions/checkout@v4
+      uses: actions/checkout@v3
 
     - name: Install dependencies
       run: |
         sudo apt-get update
+        sudo apt-get install -y unzip ninja-build
         sudo apt-get install -y unzip wget libglu1-mesa
         
     - name: Set up Java 17
