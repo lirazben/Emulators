@@ -15,8 +15,8 @@ jobs:
       ANDROID_SDK_ROOT: ${{ github.workspace }}/android-sdk
       ANDROID_NDK_VERSION: "29.0.13599879"
       AVD_NAME: test
-      SYS_IMG: "system-images;android-30;google_apis;x86"
-      DEVICE: pixel
+      SYS_IMG: "system-images;android-30;google_apis;x86_64"
+      DEVICE: "pixel_4"
 
     steps:
     - name: Checkout repo
@@ -39,6 +39,14 @@ jobs:
           "platform-tools" "emulator" "$SYS_IMG" "ndk;$ANDROID_NDK_VERSION"
 
         echo "✅ SDK and NDK installed"
+
+    - name: Accept licenses and install system image + NDK
+      run: |
+        sdkmanager --install \
+          "ndk;${ANDROID_NDK_VERSION}" \
+          "${SYS_IMG}" \
+          "emulator"
+        yes | sdkmanager --licenses
 
     - name: Create AVD
       run: |
