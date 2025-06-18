@@ -76,6 +76,13 @@ jobs:
         echo "🚀 Starting emulator..."
         export ANDROID_SDK_ROOT="${ANDROID_SDK_ROOT}"
         export ANDROID_HOME="${ANDROID_SDK_ROOT}"
+
+        echo "🔪 Killing any existing emulators..."
+        $ANDROID_SDK_ROOT/platform-tools/adb devices | grep emulator | cut -f1 | while read line; do
+          $ANDROID_SDK_ROOT/platform-tools/adb -s $line emu kill || true
+        done
+        sleep 5
+
         nohup $ANDROID_SDK_ROOT/emulator/emulator -avd $AVD_NAME -no-window -no-audio -no-snapshot -no-boot-anim \
           -gpu swiftshader_indirect \
           -accel off \
@@ -86,13 +93,16 @@ jobs:
       run: |
         ps aux | grep emulator || echo "⚠️ Emulator process not found"
 
-    - name: Start emulator
+    - name: Wait for emulator to boot
       run: |
         echo "🔌 Connecting ADB manually..."
         $ANDROID_SDK_ROOT/platform-tools/adb kill-server || true
         $ANDROID_SDK_ROOT/platform-tools/adb start-server
         $ANDROID_SDK_ROOT/platform-tools/adb connect localhost:5555
-        $ANDROID_SDK_ROOT/platform-tools/adb devices -l
+        $ANDROID_SDK_ROOT/platform-tools/adb wait-for-device
+        
+        echo "✅ Emulator booted"
+        $ANDROID_SDK_ROOT/platform-tools/adb devices
 
         echo "⏳ Waiting for emulator to boot..."
         boot_completed=""
