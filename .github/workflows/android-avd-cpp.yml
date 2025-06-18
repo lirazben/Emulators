@@ -1,0 +1,90 @@
+name: AVD Native Binary Test
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  run-avd:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    env:
+      ANDROID_SDK_ROOT: ${{ github.workspace }}/android-sdk
+      ANDROID_NDK_VERSION: "29.0.13599879"
+      AVD_NAME: test
+      SYS_IMG: "system-images;android-30;google_apis;x86"
+      DEVICE: pixel
+
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v4
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y unzip wget libglu1-mesa
+
+    - name: Set up Android SDK and NDK
+      run: |
+        mkdir -p "$ANDROID_SDK_ROOT"
+        wget https://dl.google.com/android/repository/commandlinetools-linux-10406996_latest.zip -O cmdline-tools.zip
+        unzip cmdline-tools.zip -d "$ANDROID_SDK_ROOT/cmdline-tools"
+        mv "$ANDROID_SDK_ROOT/cmdline-tools/cmdline-tools" "$ANDROID_SDK_ROOT/cmdline-tools/latest"
+
+        echo "y" | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_SDK_ROOT --licenses
+        $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_SDK_ROOT \
+          "platform-tools" "emulator" "$SYS_IMG" "ndk;$ANDROID_NDK_VERSION"
+
+        echo "✅ SDK and NDK installed"
+
+    - name: Create AVD
+      run: |
+        echo "no" | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/avdmanager create avd \
+          -n $AVD_NAME -k "$SYS_IMG" --device "$DEVICE"
+
+    - name: Start emulator
+      run: |
+        echo "🚀 Starting emulator..."
+        nohup $ANDROID_SDK_ROOT/emulator/emulator -avd $AVD_NAME -no-window -no-audio -no-snapshot -no-boot-anim > /tmp/emulator.log 2>&1 &
+        $ANDROID_SDK_ROOT/platform-tools/adb wait-for-device
+
+        echo "⏳ Waiting for emulator to boot..."
+        boot_completed=""
+        timeout=600
+        count=0
+        until [[ "$boot_completed" == "1" || $count -ge $timeout ]]; do
+          boot_completed=$($ANDROID_SDK_ROOT/platform-tools/adb shell getprop sys.boot_completed | tr -d '\r')
+          sleep 1
+          count=$((count + 1))
+        done
+
+        if [ "$boot_completed" != "1" ]; then
+          echo "❌ Emulator failed to boot"
+          cat /tmp/emulator.log
+          exit 1
+        fi
+
+        echo "✅ Emulator booted"
+
+    - name: Build native binary
+      run: |
+        export ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/$ANDROID_NDK_VERSION
+        mkdir -p build
+        $ANDROID_NDK_HOME/ndk-build \
+          NDK_PROJECT_PATH=. \
+          NDK_APPLICATION_MK=./Application.mk \
+          APP_BUILD_SCRIPT=./Android.mk \
+          NDK_OUT=./build \
+          NDK_LIBS_OUT=./build
+
+    - name: Push and run binary
+      run: |
+        export ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/$ANDROID_NDK_VERSION
+        $ANDROID_SDK_ROOT/platform-tools/adb shell mkdir -p /data/local/tmp/testbin
+        $ANDROID_SDK_ROOT/platform-tools/adb push build/local/x86/your-test-binary /data/local/tmp/testbin/
+        $ANDROID_SDK_ROOT/platform-tools/adb shell chmod +x /data/local/tmp/testbin/your-test-binary
+        $ANDROID_SDK_ROOT/platform-tools/adb push $ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/i686-linux-android/libc++_shared.so /data/local/tmp/
+        $ANDROID_SDK_ROOT/platform-tools/adb shell LD_LIBRARY_PATH=/data/local/tmp /data/local/tmp/testbin/your-test-binary
