@@ -183,6 +183,23 @@ jobs:
 
         echo "📦 Package manager is ready"
 
+    - name: Wait for system services to be ready
+      run: |
+        echo "⏳ Waiting for system 'settings' content provider to become available..."
+        timeout=300
+        count=0
+        while !  $ANDROID_SDK_ROOT/platform-tools/adb -s emulator-5554 shell content query --uri content://settings/global --user 0 >/dev/null 2>&1 && [ $count -lt $timeout ]; do
+          sleep 1
+          count=$((count + 1))
+        done
+
+        if [ $count -ge $timeout ]; then
+          echo "❌ Timed out waiting for system content provider"
+          exit 1
+        fi
+
+        echo "✅ System content provider is available"
+
     - name: Install and run instrumented test
       run: |
         echo "📁 Listing APK output directory:"
