@@ -214,8 +214,8 @@ jobs:
         $ANDROID_SDK_ROOT/platform-tools/adb -s emulator-5554 push test_apk/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk /data/local/tmp/
 
         echo "📱 Installing APKs on emulator..."
-        $ANDROID_SDK_ROOT/platform-tools/adb -s emulator-5554 pm install /data/local/tmp/app-debug.apk
-        $ANDROID_SDK_ROOT/platform-tools/adb -s emulator-5554 pm install /data/local/tmp/app-debug-androidTest.apk
+        $ANDROID_SDK_ROOT/platform-tools/adb -s emulator-5554 shell pm install /data/local/tmp/app-debug.apk
+        $ANDROID_SDK_ROOT/platform-tools/adb -s emulator-5554 shell pm install /data/local/tmp/app-debug-androidTest.apk
 
         echo "🧪 Running instrumented test..."
         $ANDROID_SDK_ROOT/platform-tools/adb -s emulator-5554 shell am instrument -w -r -e debug false \
