@@ -169,9 +169,13 @@ jobs:
 
     - name: Install and run instrumented test
       run: |
+        echo "📁 Listing APK output directory:"
+        ls -l test_apk/app/build/outputs/apk/debug
+        ls -l test_apk/app/build/outputs/apk/androidTest/debug
+
         echo "📱 Installing APKs on emulator..."
-        $ANDROID_SDK_ROOT/platform-tools/adb -s emulator-5554 install -r app/build/outputs/apk/debug/app-debug.apk
-        $ANDROID_SDK_ROOT/platform-tools/adb -s emulator-5554 install -r app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+        $ANDROID_SDK_ROOT/platform-tools/adb -s emulator-5554 install -r test_apk/app/build/outputs/apk/debug/app-debug.apk
+        $ANDROID_SDK_ROOT/platform-tools/adb -s emulator-5554 install -r test_apk/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
 
         echo "🧪 Running instrumented test..."
         $ANDROID_SDK_ROOT/platform-tools/adb -s emulator-5554 shell am instrument -w -r -e debug false \
