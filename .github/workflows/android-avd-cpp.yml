@@ -17,7 +17,7 @@ jobs:
       ANDROID_HOME: ${{ github.workspace }}/android-sdk
       ANDROID_NDK_VERSION: "25.1.8937393"
       AVD_NAME: test
-      SYS_IMG: "system-images;android-33;google_apis;armeabi-v7a"
+      SYS_IMG: "system-images;android-33;google_apis;x86_64"
       DEVICE: "pixel_4"
 
     steps:
