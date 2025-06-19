@@ -140,3 +140,20 @@ jobs:
         $ANDROID_SDK_ROOT/platform-tools/adb -s emulator-5554 shell chmod +x /data/local/tmp/testbin/your-test-binary
         $ANDROID_SDK_ROOT/platform-tools/adb push $ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/i686-linux-android/libc++_shared.so /data/local/tmp/
         $ANDROID_SDK_ROOT/platform-tools/adb -s emulator-5554 shell LD_LIBRARY_PATH=/data/local/tmp /data/local/tmp/testbin/your-test-binary
+
+    - name: Build and run instrumented test
+      run: |
+        echo "📦 Building app and test APKs..."
+        cd test_apk  
+
+        chmod +x ./gradlew
+        ./gradlew assembleDebug assembleAndroidTest
+
+        echo "📱 Installing APKs on emulator..."
+        $ANDROID_SDK_ROOT/platform-tools/adb -s emulator-5554 install -r app/build/outputs/apk/debug/app-debug.apk
+        $ANDROID_SDK_ROOT/platform-tools/adb -s emulator-5554 install -r app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+
+        echo "🧪 Running instrumented test..."
+        $ANDROID_SDK_ROOT/platform-tools/adb -s emulator-5554 shell am instrument -w -r -e debug false \
+          -e class com.example.test_apk.ExampleInstrumentedTest \
+          com.example.test_apk.test/androidx.test.runner.AndroidJUnitRunner
