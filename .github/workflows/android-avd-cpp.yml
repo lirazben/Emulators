@@ -209,13 +209,26 @@ jobs:
         ls -l test_apk/app/build/outputs/apk/debug
         ls -l test_apk/app/build/outputs/apk/androidTest/debug
 
-        echo "📱 Push APKs to emulator..."
-        $ANDROID_SDK_ROOT/platform-tools/adb -s emulator-5554 push test_apk/app/build/outputs/apk/debug/app-debug.apk /data/local/tmp/
-        $ANDROID_SDK_ROOT/platform-tools/adb -s emulator-5554 push test_apk/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk /data/local/tmp/
+    - name: Install APKs with retries
+      run: |
+        install_apk() {
+          local apk="$1"
+          local retries=5
+          local count=0
+          until $ANDROID_SDK_ROOT/platform-tools/adb -s emulator-5554 install -r "$apk" || [ "$count" -ge "$retries" ]; do
+            echo "Retry install $apk ($((count+1))/$retries)..."
+            sleep 5
+            count=$((count + 1))
+          done
+          if [ "$count" -ge "$retries" ]; then
+            echo "❌ Failed to install $apk after $retries attempts"
+            exit 1
+          fi
+        }
 
-        echo "📱 Installing APKs on emulator..."
-        $ANDROID_SDK_ROOT/platform-tools/adb -s emulator-5554 shell pm install /data/local/tmp/app-debug.apk
-        $ANDROID_SDK_ROOT/platform-tools/adb -s emulator-5554 shell pm install /data/local/tmp/app-debug-androidTest.apk
+        echo "📱 Installing APKs with retries..."
+        install_apk test_apk/app/build/outputs/apk/debug/app-debug.apk
+        install_apk test_apk/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
 
         echo "🧪 Running instrumented test..."
         $ANDROID_SDK_ROOT/platform-tools/adb -s emulator-5554 shell am instrument -w -r -e debug false \
