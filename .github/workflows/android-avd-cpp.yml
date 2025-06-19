@@ -17,7 +17,7 @@ jobs:
       ANDROID_HOME: ${{ github.workspace }}/android-sdk
       ANDROID_NDK_VERSION: "25.1.8937393"
       AVD_NAME: test
-      SYS_IMG: "system-images;android-33;google_apis;x86_64"
+      SYS_IMG: "system-images;android-30;google_apis;x86"
       DEVICE: "pixel_4"
 
     steps:
@@ -98,6 +98,7 @@ jobs:
         echo "🔌 Connecting ADB manually..."
         $ANDROID_SDK_ROOT/platform-tools/adb kill-server || true
         $ANDROID_SDK_ROOT/platform-tools/adb start-server
+        $ANDROID_SDK_ROOT/platform-tools/adb wait-for-device
         
         echo "✅ Emulator booted"
         $ANDROID_SDK_ROOT/platform-tools/adb devices

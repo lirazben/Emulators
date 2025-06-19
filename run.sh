@@ -27,7 +27,7 @@ fi
 # 3. Install required packages if missing
 # --------------------------------------------
 
-sdkmanager --install "ndk;29.0.13599879" "$SYS_IMG" "emulator"
+# sdkmanager --install "ndk;29.0.13599879" "$SYS_IMG" "emulator"
 
 # --------------------------------------------
 # 4. Create AVD if it doesn't exist
@@ -50,7 +50,9 @@ pkill -9 -f "emulator" || true
 # --------------------------------------------
 
 echo "🚀 Starting emulator..."
-nohup emulator -avd "$AVD_NAME" -no-audio -no-snapshot -no-boot-anim -no-window > /tmp/emulator.log 2>&1 &
+# nohup emulator -avd "$AVD_NAME" -no-audio -no-snapshot -no-boot-anim -no-window > /tmp/emulator.log 2>&1 &
+nohup emulator -avd "$AVD_NAME" -no-audio -no-snapshot -no-boot-anim -verbose > /tmp/emulator.log 2>&1 &
+
 
 # Wait for ADB to connect
 adb wait-for-device
@@ -97,3 +99,24 @@ adb shell chmod +x /data/local/tmp/testbin/your-test-binary
 adb push $ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/i686-linux-android/libc++_shared.so /data/local/tmp/
 adb shell LD_LIBRARY_PATH=/data/local/tmp /data/local/tmp/testbin/your-test-binary
 
+# --------------------------------------------
+# 7. Build APK & Test APK
+# --------------------------------------------
+echo "📦 Building app and test APKs..."
+cd ~/AndroidStudioProjects/test_apk
+./gradlew assembleDebug assembleAndroidTest
+
+# --------------------------------------------
+# 8. Install APKs on the emulator
+# --------------------------------------------
+echo "📱 Installing APKs on emulator..."
+adb install -r app/build/outputs/apk/debug/app-debug.apk
+adb install -r app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+
+# --------------------------------------------
+# 9. Run the test
+# --------------------------------------------
+echo "🧪 Running instrumented test..."
+adb shell am instrument -w -r -e debug false \
+    -e class com.example.test_apk.ExampleInstrumentedTest \
+    com.example.test_apk.test/androidx.test.runner.AndroidJUnitRunner
