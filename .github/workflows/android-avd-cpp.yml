@@ -141,7 +141,7 @@ jobs:
         $ANDROID_SDK_ROOT/platform-tools/adb push $ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/i686-linux-android/libc++_shared.so /data/local/tmp/
         $ANDROID_SDK_ROOT/platform-tools/adb -s emulator-5554 shell LD_LIBRARY_PATH=/data/local/tmp /data/local/tmp/testbin/your-test-binary
 
-    - name: Build and run instrumented test
+    - name: Build instrumented test
       run: |
         echo "📦 Building app and test APKs..."
         cd test_apk  
@@ -149,6 +149,26 @@ jobs:
         chmod +x ./gradlew
         ./gradlew assembleDebug assembleAndroidTest
 
+    - name: Wait for package manager
+      run: |
+        # 🔄 Wait for package manager
+        echo "⏳ Waiting for package manager to become available..."
+        timeout=360
+        count=0
+        until $ANDROID_SDK_ROOT/platform-tools/adb -s emulator-5554 shell service check package | grep -q "found" || [ $count -ge $timeout ]; do
+          sleep 1
+          count=$((count + 1))
+        done
+
+        if [ $count -ge $timeout ]; then
+          echo "❌ Package manager did not become available in time"
+          exit 1
+        fi
+
+        echo "✅ Package manager is available"
+
+    - name: Install and run instrumented test
+      run: |
         echo "📱 Installing APKs on emulator..."
         $ANDROID_SDK_ROOT/platform-tools/adb -s emulator-5554 install -r app/build/outputs/apk/debug/app-debug.apk
         $ANDROID_SDK_ROOT/platform-tools/adb -s emulator-5554 install -r app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
