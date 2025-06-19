@@ -167,6 +167,22 @@ jobs:
 
         echo "✅ Package manager is available"
 
+        # 🕵️ Wait until package manager is available
+        echo "⏳ Waiting for package manager to be ready..."
+        timeout=360
+        count=0
+        until $ANDROID_SDK_ROOT/platform-tools/adb -s emulator-5554 shell pm list packages > /dev/null 2>&1 || [ "$count" -ge "$timeout" ]; do
+          sleep 1
+          count=$((count + 1))
+        done
+
+        if [ "$count" -ge "$timeout" ]; then
+          echo "❌ Timeout: package manager not ready"
+          exit 1
+        fi
+
+        echo "📦 Package manager is ready"
+
     - name: Install and run instrumented test
       run: |
         echo "📁 Listing APK output directory:"
